@@ -10,7 +10,7 @@ Read a housing association's annual report (årsredovisning) before you buy the 
 - **Index** of Stockholm associations, with district filter and sorting by health, debt, savings or fee.
 - **Association pages** with the 2024 key ratios, five years of annual-report figures (charts and a ledger), a weighted factor breakdown, green and red flags, upcoming works, and questions to ask the board.
 - **"What it means for you"** stress test: set your flat size, a rate rise and the asking price to see your monthly fee, your share of the association's debt, and the true price.
-- **Analyse a report**: type in the key ratios from *any* real årsredovisning and get a live grade. Everything runs in the browser.
+- **Analyse a report**: drop in *any* real årsredovisning PDF and the mandatory key ratios (ÅRL 6 kap. 3 a §, BFNAR 2023:1) fill in automatically, each labelled with the page it came from. It handles multi-year tables in either column order, labels that wrap over several lines, and space-separated thousands, and it computes the latest fee change from the table. The PDF is parsed in the browser with pdf.js and never uploaded. Scanned reports have no text layer, so those still need typing in. The parser lives in [`src/lib/report-parse.ts`](src/lib/report-parse.ts).
 - **Method** page documenting every benchmark and weight.
 
 ## How the grade works

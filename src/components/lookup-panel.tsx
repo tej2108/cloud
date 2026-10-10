@@ -160,7 +160,7 @@ function NotInIndex({ name, total }: { name: string; total: number }) {
     <div className="mt-3">
       <p className="text-sm">
         <strong className="font-semibold">{name}</strong> isn&apos;t in the index. It holds {total} demo associations.
-        You can still grade it from its annual report in a couple of minutes.
+        You can still grade it: drop its annual report PDF into the analyser and the numbers fill in.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <Link

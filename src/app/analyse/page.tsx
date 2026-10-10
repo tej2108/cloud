@@ -18,8 +18,8 @@ export default function AnalysePage() {
             Grade any annual report
           </h1>
           <p className="mt-3 max-w-2xl text-ink-2">
-            The estate agent can give you the latest årsredovisning, or you can order it from Bolagsverket. Copy eight
-            numbers from it and the grade updates as you type. Nothing leaves your browser.
+            Drop in the association&apos;s årsredovisning and the key ratios fill in by themselves, or type them in by
+            hand. The PDF is read in your browser and never uploaded.
           </p>
           <Suspense fallback={null}>
             <AnalyseTarget />

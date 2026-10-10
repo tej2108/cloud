@@ -9,8 +9,8 @@ export function AnalyseTarget() {
   return (
     <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand/20 bg-brand-tint px-4 py-3 text-sm">
       <p>
-        Grading <strong className="font-semibold">{brf}</strong>. Copy the key ratios from its annual report into
-        the form below.
+        Grading <strong className="font-semibold">{brf}</strong>. Drop its annual report PDF in below, or type
+        the key ratios in by hand.
       </p>
       <a
         href={`https://www.google.com/search?q=${encodeURIComponent(`"${brf}" årsredovisning`)}`}
