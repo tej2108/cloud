@@ -41,4 +41,12 @@ npm run dev
 
 Open http://localhost:3000.
 
+## Password-protected preview
+
+The whole site sits behind a username and password ([`src/proxy.ts`](src/proxy.ts), HTTP Basic Auth). The login comes from two environment variables, `SITE_USERNAME` and `SITE_PASSWORD`, which are set on the host and never committed (see [`.env.example`](.env.example)).
+
+- Local development without them: the site is open.
+- Production without them: the site is locked (HTTP 503), so a missing setting never exposes it.
+- To change the password or remove someone's access, change `SITE_PASSWORD` on the host and redeploy.
+
 Built with Next.js 16 (App Router, Cache Components), React 19 and Tailwind CSS 4.
