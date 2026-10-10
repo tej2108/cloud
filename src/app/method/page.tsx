@@ -60,102 +60,128 @@ const FACTORS = [
   },
 ];
 
+const BANDS = [
+  [85, 100],
+  [75, 84],
+  [65, 74],
+  [55, 64],
+  [45, 54],
+  [35, 44],
+  [0, 34],
+];
+
 export default function MethodPage() {
   return (
-    <div className="pt-12">
-      <header className="max-w-3xl">
-        <p className="eyebrow">Method · v1</p>
-        <h1 className="mt-3 font-display text-[clamp(2.6rem,6vw,4.6rem)] leading-[0.95]">
-          Eight factors, <span className="italic text-ochre">one grade.</span>
-        </h1>
-        <p className="mt-5 text-lg text-ink-2">
-          From the 2023 financial year, Swedish housing associations must report a fixed set of key ratios in their
-          annual report (BFNAR 2023:1). That makes associations comparable for the first time. Trapphus scores each
-          ratio 0–100 against Stockholm benchmarks, adds building and land factors, and weights them into a single
-          score.
-        </p>
+    <>
+      <header className="border-b border-line bg-surface">
+        <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6">
+          <p className="text-sm font-medium text-brand">Method · v1</p>
+          <h1 className="mt-2 max-w-2xl text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight tracking-[-0.02em]">
+            Eight factors, one grade
+          </h1>
+          <p className="mt-3 max-w-2xl text-ink-2">
+            From the 2023 financial year, Swedish housing associations must report a fixed set of key ratios in their
+            annual report (BFNAR 2023:1). That makes associations comparable for the first time. Trapphus scores each
+            ratio 0–100 against Stockholm benchmarks, adds building and land factors, and weights them into a single
+            score.
+          </p>
+        </div>
       </header>
 
-      <section className="mt-12 grid grid-cols-2 gap-px bg-line sm:grid-cols-4 lg:grid-cols-7">
-        {GRADES.map((g, i) => {
-          const lo = [85, 75, 65, 55, 45, 35, 0][i];
-          const hi = [100, 84, 74, 64, 54, 44, 34][i];
-          return (
-            <div key={g} className="flex items-center gap-3 bg-paper p-4">
-              <GradeChip grade={g} />
-              <span className="font-mono text-xs tabular">
-                {lo}–{hi}
-              </span>
-            </div>
-          );
-        })}
-      </section>
+      <div className="mx-auto max-w-[1200px] space-y-6 px-4 pt-6 sm:px-6">
+        <section className="card p-5 sm:p-6">
+          <h2 className="text-lg font-bold tracking-tight">Score to grade</h2>
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+            {GRADES.map((g, i) => (
+              <div key={g} className="flex items-center gap-3 rounded-lg bg-surface-2 p-3">
+                <GradeChip grade={g} />
+                <span className="text-sm font-medium tabular">
+                  {BANDS[i][0]}–{BANDS[i][1]}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-ink-2">
+            Hard caps apply: negative savings caps the score at 44 (grade F), and an oäkta förening caps it at 54
+            (grade E).
+          </p>
+        </section>
 
-      <section className="mt-16 space-y-12">
-        {FACTORS.map((f) => (
-          <div key={f.name} className="grid gap-6 border-t border-ink pt-5 md:grid-cols-[1fr_1.3fr]">
+        <section className="card divide-y divide-line">
+          {FACTORS.map((f) => (
+            <div key={f.name} className="grid gap-6 p-5 sm:p-6 md:grid-cols-[1fr_1.2fr]">
+              <div>
+                <div className="flex flex-wrap items-baseline gap-x-3">
+                  <h2 className="text-lg font-bold tracking-tight">{f.name}</h2>
+                  <span className="rounded-full bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand tabular">
+                    weight {f.weight}
+                  </span>
+                </div>
+                <p className="text-sm text-ink-3">{f.sv}</p>
+                <p className="mt-3 text-sm text-ink-2">{f.why}</p>
+              </div>
+              <div className="self-end">
+                <div className="flex items-end gap-1">
+                  {f.curve.map(([x, s]) => (
+                    <div key={x} className="flex min-w-0 flex-1 flex-col items-center">
+                      <span className="text-[11px] text-ink-3 tabular">{Math.round(s)}</span>
+                      <div
+                        className="mt-1 w-full rounded-t"
+                        style={{
+                          height: `${8 + s * 0.7}px`,
+                          background: s >= 75 ? "var(--up)" : s >= 50 ? "var(--g-e)" : "var(--down)",
+                        }}
+                      />
+                      <span className="mt-1.5 text-[11px] font-medium tabular">{num(x)}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-right text-[11px] text-ink-3">{f.unit} → score (linear between points)</p>
+              </div>
+            </div>
+          ))}
+          <div className="grid gap-6 p-5 sm:p-6 md:grid-cols-2">
             <div>
               <div className="flex items-baseline gap-3">
-                <h2 className="font-display text-3xl">{f.name}</h2>
-                <span className="font-mono text-xs text-ink-3">weight {f.weight}</span>
+                <h2 className="text-lg font-bold tracking-tight">Building &amp; maintenance</h2>
+                <span className="rounded-full bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand">weight 15</span>
               </div>
-              <p className="font-display italic text-ink-3">{f.sv}</p>
-              <p className="mt-3 text-ink-2">{f.why}</p>
+              <p className="mt-3 text-sm text-ink-2">
+                Stambyte (replacing water and drain pipes) costs 600 000–1 000 000 kr per flat in Stockholm today.
+                Buildings over ~45 years old without one face it soon. A recent stambyte scores full marks, and a
+                missing maintenance plan costs 20 points.
+              </p>
             </div>
-            <div className="flex flex-wrap items-end gap-1 self-end">
-              {f.curve.map(([x, s]) => (
-                <div key={x} className="flex min-w-14 flex-1 flex-col items-center">
-                  <span className="font-mono text-[10px] text-ink-3">{Math.round(s)}</span>
-                  <div
-                    className="w-full"
-                    style={{
-                      height: `${8 + s * 0.7}px`,
-                      background: s >= 75 ? "var(--moss)" : s >= 50 ? "var(--ochre)" : "var(--falu)",
-                      opacity: 0.85,
-                    }}
-                  />
-                  <span className="mt-1 font-mono text-[10px] tabular">{num(x)}</span>
-                </div>
-              ))}
-              <span className="w-full text-right font-mono text-[10px] text-ink-3">{f.unit} → score (linear between points)</span>
+            <div>
+              <div className="flex items-baseline gap-3">
+                <h2 className="text-lg font-bold tracking-tight">Land &amp; tax status</h2>
+                <span className="rounded-full bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand">weight 10</span>
+              </div>
+              <p className="mt-3 text-sm text-ink-2">
+                Leasehold land (tomträtt) means paying ground rent to the city, and it&apos;s renegotiated every 10–20
+                years, often with steep increases. A non-genuine association (oäkta förening) makes residents pay tax on
+                the rent benefit, which caps the overall score at 54.
+              </p>
             </div>
           </div>
-        ))}
+        </section>
 
-        <div className="grid gap-6 border-t border-ink pt-5 md:grid-cols-2">
-          <div>
-            <h2 className="font-display text-3xl">Building &amp; maintenance</h2>
-            <p className="font-mono text-xs text-ink-3">weight 15</p>
-            <p className="mt-3 text-ink-2">
-              Stambyte (replacing water and drain pipes) costs 600 000–1 000 000 kr per flat in Stockholm today.
-              Buildings over ~45 years old without one face it soon. A recent stambyte scores full marks, and a
-              missing maintenance plan costs 20 points.
-            </p>
-          </div>
-          <div>
-            <h2 className="font-display text-3xl">Land &amp; tax status</h2>
-            <p className="font-mono text-xs text-ink-3">weight 10</p>
-            <p className="mt-3 text-ink-2">
-              Leasehold land (tomträtt) means paying ground rent to the city, and it&apos;s renegotiated every 10–20
-              years, often with steep increases. A non-genuine association (oäkta förening) makes residents pay tax on
-              the rent benefit, which caps the overall score at 54.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-16 bg-ink p-6 text-paper sm:p-10">
-        <h2 className="font-display text-3xl">Limits</h2>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-paper/85">
-          <li>The associations in the index are fictional demo data, built to show typical Stockholm patterns.</li>
-          <li>The ratios don&apos;t capture board quality, disputes, or how well the building has actually been maintained. Read the full report and the stadgar too.</li>
-          <li>Benchmarks reflect Stockholm in 2024–2025 and will drift with interest rates and construction costs.</li>
-          <li>This is an educational model, not financial advice.</li>
-        </ul>
-        <Link href="/analyse" className="mt-6 inline-block border border-paper px-5 py-3 text-sm hover:border-ochre hover:text-ochre">
-          Try it on a real report →
-        </Link>
-      </section>
-    </div>
+        <section className="card border-warn/30 bg-warn-tint p-5 sm:p-6">
+          <h2 className="text-lg font-bold tracking-tight">Limits</h2>
+          <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-2">
+            <li>The associations in the index are fictional demo data, built to show typical Stockholm patterns.</li>
+            <li>The ratios don&apos;t capture board quality, disputes, or how well the building has actually been maintained. Read the full report and the stadgar too.</li>
+            <li>Benchmarks reflect Stockholm in 2024–2025 and will drift with interest rates and construction costs.</li>
+            <li>This is an educational model, not financial advice.</li>
+          </ul>
+          <Link
+            href="/analyse"
+            className="mt-5 inline-flex h-10 items-center rounded-lg bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-ink"
+          >
+            Try it on a real report
+          </Link>
+        </section>
+      </div>
+    </>
   );
 }

@@ -1,17 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --paper: #f2ede3;
-  --paper-2: #e9e2d4;
-  --ink: #17201c;
-  --ink-2: #4a524d;
-  --ink-3: #7c817c;
-  --line: #cfc6b5;
-  --ochre: #c4782f;
-  --falu: #983a2b;
-  --moss: #2f6a4c;
+  /* Surfaces: cool grey page, white cards, like a broker or listings app */
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --surface-2: #f8f9fb;
+  --ink: #101828;
+  --ink-2: #475467;
+  --ink-3: #7a8699;
+  --line: #e4e7ec;
+  --line-2: #d0d5dd;
 
-  /* Energy-label style grade ramp */
+  /* One brand colour, used for interaction only */
+  --brand: #1d3fc4;
+  --brand-ink: #15309a;
+  --brand-tint: #eef1fd;
+
+  /* Market colours */
+  --up: #0a7f45;
+  --up-tint: #e7f5ee;
+  --down: #c8323b;
+  --down-tint: #fcecec;
+  --warn: #a35f00;
+  --warn-tint: #fdf3e2;
+
+  /* Energy-label grade ramp (energideklaration) */
   --g-a: #1f7a45;
   --g-b: #4f9a3f;
   --g-c: #a3b83a;
@@ -22,87 +35,61 @@
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-paper-2: var(--paper-2);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-line: var(--line);
-  --color-ochre: var(--ochre);
-  --color-falu: var(--falu);
-  --color-moss: var(--moss);
-  --font-display: var(--font-instrument);
-  --font-sans: var(--font-schibsted);
-  --font-mono: var(--font-plex-mono);
+  --color-line-2: var(--line-2);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-tint: var(--brand-tint);
+  --color-up: var(--up);
+  --color-up-tint: var(--up-tint);
+  --color-down: var(--down);
+  --color-down-tint: var(--down-tint);
+  --color-warn: var(--warn);
+  --color-warn-tint: var(--warn-tint);
+  --font-sans: var(--font-plex);
 }
 
 html {
-  background: var(--paper);
+  background: var(--bg);
 }
 
 body {
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
-  font-family: var(--font-schibsted), ui-sans-serif, sans-serif;
-  font-feature-settings: "ss01";
-}
-
-/* Paper grain */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
-  opacity: 0.32;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  font-family: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
 }
 
 ::selection {
-  background: var(--ochre);
-  color: var(--paper);
-}
-
-.font-display {
-  font-family: var(--font-instrument), serif;
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  background: var(--brand);
+  color: #fff;
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
 }
 
-.eyebrow {
-  font-family: var(--font-plex-mono), monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+/* White card on the grey page */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--ink-3);
 }
 
-.rule {
-  border-top: 1px solid var(--ink);
-}
-.rule-double {
-  border-top: 3px double var(--ink);
-}
-
-/* Staggered page-load reveal */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.reveal {
-  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 70ms);
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
 
 @keyframes grow {
@@ -112,38 +99,47 @@ body::before {
 }
 .grow-x {
   transform-origin: left;
-  animation: grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(200ms + var(--i, 0) * 60ms);
+  animation: grow 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(100ms + var(--i, 0) * 40ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
   .grow-x {
     animation: none;
   }
 }
 
-/* Range inputs */
+/* Range inputs with a filled track. --fill is set inline (0–100%). */
 input[type="range"] {
   appearance: none;
-  height: 2px;
-  background: var(--ink);
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--brand) var(--fill, 50%), var(--line) var(--fill, 50%));
   outline: none;
 }
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 999px;
-  background: var(--ochre);
-  border: 2px solid var(--ink);
+  background: #fff;
+  border: 2px solid var(--brand);
+  box-shadow: 0 1px 3px rgb(16 24 40 / 0.15);
   cursor: grab;
 }
 input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: var(--ochre);
-  border: 2px solid var(--ink);
+  background: #fff;
+  border: 2px solid var(--brand);
   cursor: grab;
+}
+
+/* Hide the scrollbar on horizontally scrolling chip rows */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

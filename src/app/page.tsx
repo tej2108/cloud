@@ -1,14 +1,10 @@
 import Link from "next/link";
-import { RATED } from "@/lib/brfs";
-import { perSqm } from "@/lib/format";
+import { MEDIANS, RATED, type RatedBrf } from "@/lib/brfs";
+import { GRADES } from "@/lib/score";
+import { num, pct, perSqm } from "@/lib/format";
 import { BrfIndex, type IndexRow } from "@/components/brf-index";
-import { GradeChip } from "@/components/grade";
-
-function median(xs: number[]) {
-  const s = [...xs].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-}
+import { GradeChip, gradeColor } from "@/components/grade";
+import { ChevronRight } from "@/components/icons";
 
 export default function Home() {
   const rows: IndexRow[] = RATED.map((b) => ({
@@ -28,87 +24,154 @@ export default function Home() {
     feePerSqm: b.inputs.feePerSqm,
   }));
 
+  const strongest = RATED[0];
   const trap = RATED.find((b) => b.newBuild) ?? RATED[RATED.length - 1];
-  const strong = RATED.filter((b) => "AB".includes(b.assessment.grade)).length;
-  const weak = RATED.filter((b) => "EFG".includes(b.assessment.grade)).length;
+  const exposed = RATED.filter((b) => b !== trap).reduce((m, b) =>
+    b.inputs.rateSensitivity > m.inputs.rateSensitivity ? b : m,
+  );
 
   return (
     <>
-      <section className="grid gap-10 pb-14 pt-12 md:grid-cols-[1.45fr_1fr] md:pt-16">
-        <div>
-          <p className="eyebrow reveal">Stockholm · annual reports 2020–2024</p>
-          <h1
-            className="reveal mt-4 font-display text-[clamp(2.9rem,7.5vw,5.8rem)] leading-[0.92]"
-            style={{ ["--i" as string]: 1 }}
-          >
-            Read the stairwell
-            <br />
-            <span className="italic text-ochre">before</span> you buy the flat.
-          </h1>
-          <p className="reveal mt-6 max-w-xl text-lg text-ink-2" style={{ ["--i" as string]: 2 }}>
-            In Stockholm, buying a bostadsrätt means buying into the association&apos;s debts too. Trapphus reads
-            each förening&apos;s annual report and grades its health from A to G, the same way your building&apos;s
-            energy label does.
-          </p>
-          <div className="reveal mt-8 flex flex-wrap gap-3" style={{ ["--i" as string]: 3 }}>
-            <a href="#index" className="bg-ink px-5 py-3 text-sm text-paper transition-colors hover:bg-ochre">
-              Browse the index
-            </a>
-            <Link href="/analyse" className="border border-ink px-5 py-3 text-sm transition-colors hover:border-ochre hover:text-ochre">
-              Analyse any årsredovisning →
-            </Link>
-          </div>
+      <BrfIndex
+        rows={rows}
+        intro={
+          <>
+            <h1 className="max-w-xl text-[clamp(2rem,4.6vw,3.25rem)] font-bold leading-[1.05] tracking-[-0.025em]">
+              Check the association before you bid on the flat.
+            </h1>
+            <p className="mt-4 max-w-lg text-lg text-pretty text-ink-2">
+              Buying a bostadsrätt means buying into the förening&apos;s debt. We read each annual report and grade
+              its finances from A to G.
+            </p>
+          </>
+        }
+        aside={<Snapshot />}
+      />
+
+      <section className="mx-auto max-w-[1200px] px-4 pt-10 sm:px-6">
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="text-xl font-bold tracking-tight">Worth a closer look</h2>
+          <Link href="/analyse" className="text-sm font-medium text-brand hover:underline">
+            Grade your own report →
+          </Link>
         </div>
-
-        <Link
-          href={`/brf/${trap.slug}`}
-          className="reveal group relative self-end border border-ink bg-paper p-6 shadow-[8px_8px_0_var(--ink)] transition-transform hover:-translate-y-1"
-          style={{ ["--i" as string]: 4 }}
-        >
-          <p className="eyebrow !text-falu">Case study · the low-fee trap</p>
-          <div className="mt-4 flex items-start justify-between gap-4">
-            <h2 className="font-display text-3xl leading-tight">{trap.name}</h2>
-            <GradeChip grade={trap.assessment.grade} size="lg" />
-          </div>
-          <p className="mt-1 text-sm text-ink-3">
-            {trap.district} · built {trap.built}
-          </p>
-          <dl className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-4">
-            <div>
-              <dt className="eyebrow">Fee</dt>
-              <dd className="font-display text-2xl text-moss">{perSqm(trap.inputs.feePerSqm)}</dd>
-              <dd className="text-xs text-ink-3">looks cheap</dd>
-            </div>
-            <div>
-              <dt className="eyebrow">Debt</dt>
-              <dd className="font-display text-2xl text-falu">{perSqm(trap.inputs.debtPerSqm)}</dd>
-              <dd className="text-xs text-ink-3">is why</dd>
-            </div>
-          </dl>
-          <p className="mt-4 text-sm text-ink-2">
-            Developers set the opening fee. A low one sells flats, while the association borrows to cover the gap. See
-            what that does when rates move →
-          </p>
-        </Link>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Spotlight
+            b={strongest}
+            kicker="Strongest balance sheet"
+            note="Low debt, healthy savings. Fee rises would barely be felt."
+            stats={[
+              ["Debt", perSqm(strongest.inputs.debtPerSqm)],
+              ["Savings", perSqm(strongest.inputs.savingsPerSqm)],
+            ]}
+          />
+          <Spotlight
+            b={trap}
+            kicker="The low-fee trap"
+            note="The developer set a low opening fee. The association borrowed to cover the gap."
+            stats={[
+              ["Fee", perSqm(trap.inputs.feePerSqm)],
+              ["Debt", perSqm(trap.inputs.debtPerSqm)],
+            ]}
+            warn
+          />
+          <Spotlight
+            b={exposed}
+            kicker="Most exposed to rates"
+            note={`If rates rise one point, fees must go up ${pct(exposed.inputs.rateSensitivity)} to cover it. That lands straight on the residents.`}
+            stats={[
+              ["+1 pp rate", `+${pct(exposed.inputs.rateSensitivity)} fee`],
+              ["Fee", perSqm(exposed.inputs.feePerSqm)],
+            ]}
+            warn
+          />
+        </div>
       </section>
+    </>
+  );
+}
 
-      <section className="grid grid-cols-2 border-y border-ink md:grid-cols-4">
-        {[
-          [String(RATED.length), "associations graded"],
-          [perSqm(median(RATED.map((b) => b.inputs.debtPerSqm))), "median debt"],
-          [String(strong), "graded A–B"],
-          [String(weak), "graded E or worse"],
-        ].map(([v, l], i) => (
-          <div key={l} className={`px-4 py-5 ${i ? "md:border-l" : ""} ${i % 2 ? "border-l" : ""} border-line ${i > 1 ? "border-t md:border-t-0" : ""}`}>
-            <div className="font-display text-3xl tabular sm:text-4xl">{v}</div>
-            <div className="eyebrow mt-1">{l}</div>
+function Snapshot() {
+  const counts = GRADES.map((g) => ({ g, n: RATED.filter((b) => b.assessment.grade === g).length }));
+  const rows: [string, string][] = [
+    ["Median debt", perSqm(MEDIANS.debtPerSqm)],
+    ["Median savings", perSqm(MEDIANS.savingsPerSqm)],
+    ["Median fee", perSqm(MEDIANS.feePerSqm)],
+    ["Median fee rise per +1 pp", pct(MEDIANS.rateSensitivity)],
+  ];
+  return (
+    <div className="card p-5">
+      <div className="flex items-baseline justify-between">
+        <h2 className="font-semibold">Index snapshot</h2>
+        <span className="text-xs text-ink-3">FY2024 · {RATED.length} associations</span>
+      </div>
+
+      <p className="label mt-5">Grade distribution</p>
+      <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-line">
+        {counts
+          .filter((c) => c.n > 0)
+          .map((c) => (
+            <div key={c.g} style={{ flex: c.n, background: gradeColor(c.g) }} title={`${c.g}: ${c.n}`} />
+          ))}
+      </div>
+      <div className="mt-2 grid grid-cols-7 text-center text-xs tabular">
+        {counts.map((c) => (
+          <div key={c.g} className={c.n ? "" : "text-ink-3"}>
+            <div className="font-semibold">{c.g}</div>
+            <div className="text-ink-3">{c.n}</div>
           </div>
         ))}
-      </section>
-
-      <div id="index" className="scroll-mt-6 pt-14">
-        <BrfIndex rows={rows} />
       </div>
-    </>
+
+      <dl className="mt-5 divide-y divide-line border-t border-line text-sm">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex justify-between py-2.5">
+            <dt className="text-ink-2">{k}</dt>
+            <dd className="font-semibold tabular">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+function Spotlight({
+  b,
+  kicker,
+  note,
+  stats,
+  warn,
+}: {
+  b: RatedBrf;
+  kicker: string;
+  note: string;
+  stats: [string, string][];
+  warn?: boolean;
+}) {
+  return (
+    <Link href={`/brf/${b.slug}`} className="card group flex flex-col p-5 transition-shadow hover:shadow-[0_4px_16px_rgb(16_24_40/0.08)]">
+      <p className={`text-xs font-semibold ${warn ? "text-down" : "text-up"}`}>{kicker}</p>
+      <div className="mt-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-lg font-bold tracking-tight group-hover:text-brand">{b.name}</h3>
+          <p className="text-sm text-ink-3">
+            {b.district} · built {b.built}
+          </p>
+        </div>
+        <GradeChip grade={b.assessment.grade} />
+      </div>
+      <dl className="mt-4 grid grid-cols-2 gap-3 rounded-lg bg-surface-2 p-3">
+        {stats.map(([k, v]) => (
+          <div key={k}>
+            <dt className="label">{k}</dt>
+            <dd className="mt-0.5 font-semibold tabular">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-4 flex-1 text-sm text-ink-2">{note}</p>
+      <span className="mt-4 flex items-center gap-1 text-sm font-medium text-brand">
+        Score {num(b.assessment.score)}/100 · see the report <ChevronRight />
+      </span>
+    </Link>
   );
 }

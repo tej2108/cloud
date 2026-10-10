@@ -329,3 +329,19 @@ export const RATED: RatedBrf[] = BRFS.map(rated).sort((a, b) => b.assessment.sco
 export function getBrf(slug: string): RatedBrf | undefined {
   return RATED.find((b) => b.slug === slug);
 }
+
+export function median(xs: number[]) {
+  const s = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+/** Index-wide medians of the key ratios, for "vs. index" comparisons. */
+export const MEDIANS = {
+  feePerSqm: median(RATED.map((b) => b.inputs.feePerSqm)),
+  debtPerSqm: median(RATED.map((b) => b.inputs.debtPerSqm)),
+  savingsPerSqm: median(RATED.map((b) => b.inputs.savingsPerSqm)),
+  rateSensitivity: median(RATED.map((b) => b.inputs.rateSensitivity)),
+  energyCostPerSqm: median(RATED.map((b) => b.inputs.energyCostPerSqm)),
+  feeShare: median(RATED.map((b) => b.inputs.feeShare ?? 100)),
+};
