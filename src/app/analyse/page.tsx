@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { RATED } from "@/lib/brfs";
 import { Analyser } from "@/components/analyser";
+import { AnalyseTarget } from "@/components/analyse-target";
 
 export const metadata: Metadata = {
   title: "Analyse an annual report",
@@ -19,6 +21,9 @@ export default function AnalysePage() {
             The estate agent can give you the latest årsredovisning, or you can order it from Bolagsverket. Copy eight
             numbers from it and the grade updates as you type. Nothing leaves your browser.
           </p>
+          <Suspense fallback={null}>
+            <AnalyseTarget />
+          </Suspense>
         </div>
       </header>
       <div className="mx-auto max-w-[1200px] px-4 pt-6 sm:px-6">

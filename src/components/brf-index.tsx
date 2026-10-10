@@ -4,8 +4,12 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Grade } from "@/lib/score";
 import { num, pct } from "@/lib/format";
+import { areaMatches, fold, nameScore, parseLookup } from "@/lib/lookup";
 import { GradeChip, SignalPill } from "./grade";
 import { ChevronRight, SearchIcon, SortIcon } from "./icons";
+import { LookupPanel } from "./lookup-panel";
+
+const EXAMPLE_HEMNET = "https://www.hemnet.se/bostad/lagenhet-2rum-sodermalm-stockholms-kommun-hornsgatan-12-21310123";
 
 export interface IndexRow {
   slug: string;
@@ -39,19 +43,39 @@ const GRID = "md:grid-cols-[3.25rem_minmax(0,1fr)_4.5rem_6.5rem_6rem_6rem_5.5rem
 
 export function BrfIndex({ rows, intro, aside }: { rows: IndexRow[]; intro: React.ReactNode; aside: React.ReactNode }) {
   const [q, setQ] = useState("");
+  /** Association name typed in after pasting a link that doesn't contain one */
+  const [listingName, setListingName] = useState("");
   const [district, setDistrict] = useState<string | null>(null);
   const [sort, setSort] = useState<{ key: NumKey; dir: "asc" | "desc" }>({ key: "score", dir: "desc" });
 
   const districts = useMemo(() => [...new Set(rows.map((r) => r.district))].sort((a, b) => a.localeCompare(b, "sv")), [rows]);
 
+  const lookup = useMemo(() => parseLookup(q), [q]);
+  // The name to match on: typed directly, read from the link, or typed in after a link.
+  const name =
+    lookup.kind === "name" ? lookup.query : lookup.kind === "listing" ? lookup.name || listingName.trim() : "";
+  const area = lookup.kind === "listing" && !name ? lookup.area : undefined;
+
+  const scored = useMemo(
+    () => rows.map((r) => ({ r, s: name ? Math.max(nameScore(name, r.name), fold(r.district).includes(fold(name)) ? 0.6 : 0) : 0 })),
+    [rows, name],
+  );
+  const matches = useMemo(() => scored.filter((x) => x.s > 0).sort((a, b) => b.s - a.s), [scored]);
+
   const shown = useMemo(() => {
-    const needle = q.trim().toLowerCase();
     const sign = sort.dir === "asc" ? 1 : -1;
-    return rows
-      .filter((r) => !district || r.district === district)
-      .filter((r) => !needle || `${r.name} ${r.district}`.toLowerCase().includes(needle))
+    const typed = name.trim() !== "" && fold(name).replace(/\b(brf|bostadsrattsforening(en)?)\b/g, "").trim() !== "";
+    return scored
+      .filter(({ r }) => !district || r.district === district)
+      .filter(({ s }) => !typed || s > 0)
+      .filter(({ r }) => !area || district || areaMatches(area, r.district))
+      .map(({ r }) => r)
       .sort((a, b) => sign * (a[sort.key] - b[sort.key]));
-  }, [rows, q, district, sort]);
+  }, [scored, name, area, district, sort]);
+
+  const areaCount = area ? rows.filter((r) => areaMatches(area, r.district)).length : 0;
+  // Links drop å/ä/ö; show the proper district name when we recognise the area.
+  const areaLabel = lookup.kind === "listing" ? districts.find((d) => areaMatches(lookup.area, d)) : undefined;
 
   const clickSort = (key: NumKey) => {
     const col = COLS.find((c) => c.key === key)!;
@@ -61,7 +85,7 @@ export function BrfIndex({ rows, intro, aside }: { rows: IndexRow[]; intro: Reac
   return (
     <>
       <section className="border-b border-line bg-surface">
-        <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-10 sm:px-6 md:py-14 lg:grid-cols-[1.35fr_1fr] lg:items-center">
+        <div className="mx-auto grid max-w-[1200px] gap-10 px-4 py-10 sm:px-6 md:py-14 lg:grid-cols-[1.35fr_1fr] lg:items-start">
           <div>
             {intro}
             <form
@@ -69,17 +93,22 @@ export function BrfIndex({ rows, intro, aside }: { rows: IndexRow[]; intro: Reac
               className="mt-7 flex flex-col gap-2 rounded-xl border border-line-2 bg-surface p-2 shadow-[0_1px_2px_rgb(16_24_40/0.05)] focus-within:border-brand sm:flex-row sm:items-center"
               onSubmit={(e) => {
                 e.preventDefault();
-                document.getElementById("index")?.scrollIntoView({ behavior: "smooth" });
+                // A link or a miss is answered in the panel under the box; only jump for name hits.
+                if (lookup.kind === "name" && shown.length > 0) document.getElementById("index")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
               <label className="flex flex-1 items-center gap-2.5 px-2">
                 <SearchIcon className="h-5 w-5 shrink-0 text-ink-3" />
-                <span className="sr-only">Search associations</span>
+                <span className="sr-only">Hemnet link, Booli link or association name</span>
                 <input
+                  id="lookup"
                   value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Association or district"
-                  className="h-11 w-full bg-transparent text-base outline-none placeholder:text-ink-3"
+                  onChange={(e) => {
+                    setQ(e.target.value);
+                    setListingName("");
+                  }}
+                  placeholder="Paste a Hemnet or Booli link, or type a BRF name"
+                  className="h-11 w-full bg-transparent text-base outline-none placeholder:text-ink-3 focus-visible:outline-none"
                 />
               </label>
               <label className="sr-only" htmlFor="district">District</label>
@@ -98,22 +127,46 @@ export function BrfIndex({ rows, intro, aside }: { rows: IndexRow[]; intro: Reac
                 Search
               </button>
             </form>
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3">
-              <span>Popular:</span>
-              {["Södermalm", "Vasastan", "Kungsholmen", "Östermalm"].map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => {
-                    setDistrict(d);
-                    document.getElementById("index")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="text-brand hover:underline"
-                >
-                  {d}
+            {lookup.kind === "empty" ? (
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3">
+                <span>Try:</span>
+                <button type="button" onClick={() => setQ(EXAMPLE_HEMNET)} className="text-brand hover:underline">
+                  an example Hemnet link
                 </button>
-              ))}
-            </div>
+                <button type="button" onClick={() => setQ("Brf Kopparslagaren")} className="text-brand hover:underline">
+                  Brf Kopparslagaren
+                </button>
+                {["Södermalm", "Vasastan"].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => {
+                      setDistrict(d);
+                      document.getElementById("index")?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="text-brand hover:underline"
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <LookupPanel
+                lookup={lookup}
+                name={name}
+                listingName={listingName}
+                setListingName={setListingName}
+                matches={matches.slice(0, 3).map(({ r, s }) => ({ slug: r.slug, name: r.name, district: r.district, grade: r.grade, score: s }))}
+                areaCount={areaCount}
+                areaLabel={areaLabel}
+                total={rows.length}
+                onClear={() => {
+                  setQ("");
+                  setListingName("");
+                  document.getElementById("lookup")?.focus();
+                }}
+              />
+            )}
           </div>
           {aside}
         </div>
@@ -223,11 +276,12 @@ export function BrfIndex({ rows, intro, aside }: { rows: IndexRow[]; intro: Reac
             ))}
             {shown.length === 0 && (
               <li className="px-5 py-14 text-center text-sm text-ink-3">
-                No associations match “{q}”.{" "}
+                No associations match.{" "}
                 <button
                   className="text-brand hover:underline"
                   onClick={() => {
                     setQ("");
+                    setListingName("");
                     setDistrict(null);
                   }}
                 >

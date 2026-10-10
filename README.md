@@ -6,7 +6,8 @@ Read a housing association's annual report (årsredovisning) before you buy the 
 
 ## Features
 
-- **Index** of Stockholm associations, with search, district filter and sorting by health, debt, savings or fee.
+- **Look up an association** by pasting a Hemnet or Booli link, or typing its name. Links are parsed locally (type, rooms, area, street; some Booli links carry the association name), names are matched forgivingly ("HSB brf Ekbacken i Stockholm" finds Brf Ekbacken, typos are tolerated), and an association that isn't in the index is sent straight to the analyser. Listing pages are never fetched: Hemnet has no public API and doesn't permit scraping.
+- **Index** of Stockholm associations, with district filter and sorting by health, debt, savings or fee.
 - **Association pages** with the 2024 key ratios, five years of annual-report figures (charts and a ledger), a weighted factor breakdown, green and red flags, upcoming works, and questions to ask the board.
 - **"What it means for you"** stress test: set your flat size, a rate rise and the asking price to see your monthly fee, your share of the association's debt, and the true price.
 - **Analyse a report**: type in the key ratios from *any* real årsredovisning and get a live grade. Everything runs in the browser.
