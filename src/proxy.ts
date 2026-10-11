@@ -39,7 +39,19 @@ export function proxy(request: NextRequest) {
       // Check both parts every time, so a wrong username takes as long as a wrong password.
       const userOk = safeEqual(decoded.slice(0, sep), username);
       const passOk = safeEqual(decoded.slice(sep + 1), password);
-      if (userOk && passOk) return NextResponse.next();
+      if (userOk && passOk) {
+        // Pre-rendered pages are sent with s-maxage, which lets shared caches (CDNs) store a
+        // response even when the request carried a password. Mark it private so only the
+        // visitor's own browser may keep it, whatever sits in front of the server.
+        const res = NextResponse.next();
+        const fingerprinted = request.nextUrl.pathname.startsWith("/_next/static/");
+        res.headers.set(
+          "Cache-Control",
+          // Fingerprinted files never change under the same name, so the browser may keep them.
+          fingerprinted ? "private, max-age=31536000, immutable" : "private, no-cache",
+        );
+        return res;
+      }
     }
   }
 

@@ -48,5 +48,6 @@ The whole site sits behind a username and password ([`src/proxy.ts`](src/proxy.t
 - Local development without them: the site is open.
 - Production without them: the site is locked (HTTP 503), so a missing setting never exposes it.
 - To change the password or remove someone's access, change `SITE_PASSWORD` on the host and redeploy.
+- Logged-in responses are sent as `private`, so a CDN placed in front of the server can't store a protected page and serve it to someone without the login.
 
 Built with Next.js 16 (App Router, Cache Components), React 19 and Tailwind CSS 4.
