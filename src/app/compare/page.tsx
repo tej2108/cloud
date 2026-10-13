@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { getBrf } from "@/lib/brfs";
+import { RATED } from "@/lib/brfs";
+import { pickPair } from "@/lib/compare";
+import { GradeChip } from "@/components/grade";
 
 export const metadata: Metadata = {
   title: "Compare associations",
@@ -34,13 +36,37 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 // Only this part waits for the request, because only it reads the query string.
 async function Comparison({ searchParams }: { searchParams: PageProps<"/compare">["searchParams"] }) {
   const query = await searchParams;
-  const a = getBrf(first(query.a) ?? "");
-  const b = getBrf(first(query.b) ?? "");
+  const { a, b, notices } = pickPair(first(query.a), first(query.b), RATED);
 
   return (
-    <div className="card p-5">
-      <p>A: {a ? a.name : "not found"}</p>
-      <p>B: {b ? b.name : "not found"}</p>
+    <div className="space-y-4">
+      {notices.length > 0 && (
+        <ul className="space-y-1 rounded-lg border border-warn/30 bg-warn-tint px-4 py-3 text-sm text-ink" aria-live="polite">
+          {notices.map((n) => (
+            <li key={n}>{n}</li>
+          ))}
+        </ul>
+      )}
+
+      {a && b ? (
+        <div className="card grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 p-5">
+          {[a, b].map((x, i) => (
+            <div key={x.slug} className={`flex items-center gap-3 ${i === 1 ? "order-3 justify-end text-right" : ""}`}>
+              <GradeChip grade={x.assessment.grade} />
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{x.name}</p>
+                <p className="text-sm text-ink-3">{x.district}</p>
+              </div>
+            </div>
+          ))}
+          <span className="order-2 text-sm font-medium text-ink-3">vs</span>
+        </div>
+      ) : (
+        <div className="card p-8 text-center">
+          <p className="text-lg font-semibold">Choose two associations to compare</p>
+          <p className="mt-1 text-sm text-ink-2">Pick them below and see them side by side, ratio by ratio.</p>
+        </div>
+      )}
     </div>
   );
 }
