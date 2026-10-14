@@ -52,14 +52,14 @@ const RANGE: Record<RatioKey | "debtFlat", [number, number]> = {
   feeShare: [1, 100],
 };
 
-const PER_SQM = String.raw`per\s*(kvm|kvadratmeter|m2)`;
+const PER_SQM = String.raw`(per|/)\s*(kvm|kvadratmeter|m2)`;
 const LABELS: { key: RatioKey | "debtFlat"; re: RegExp; not?: RegExp }[] = [
   { key: "feeShare", re: /arsavgifternas\s*andel|andel\s*arsavgift/ },
   { key: "feePerSqm", re: new RegExp(`arsavgift(er)?\\s*${PER_SQM}`), not: /andel/ },
   { key: "debtFlat", re: new RegExp(`skuldsattning\\s*${PER_SQM}.*upplat`) },
   { key: "debtPerSqm", re: new RegExp(`skuldsattning\\s*${PER_SQM}`), not: /upplat/ },
   { key: "savingsPerSqm", re: new RegExp(`sparande\\s*${PER_SQM}`) },
-  { key: "rateSensitivity", re: /rantekanslighet/ },
+  { key: "rateSensitivity", re: /rantek\w{1,3}nslighet/ }, // tolerates one or two OCR slips in "känslighet"
   { key: "energyCostPerSqm", re: new RegExp(`energikostnad(er)?\\s*${PER_SQM}`) },
 ];
 
