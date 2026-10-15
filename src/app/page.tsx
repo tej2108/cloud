@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { MEDIANS, RATED, type RatedBrf } from "@/lib/brfs";
+import { MEDIANS, type RatedBrf } from "@/lib/brfs";
+import { listBrfs } from "@/lib/data";
 import { GRADES } from "@/lib/score";
 import { num, pct, perSqm } from "@/lib/format";
 import { BrfIndex, type IndexRow } from "@/components/brf-index";
 import { GradeChip, gradeColor } from "@/components/grade";
 import { ChevronRight } from "@/components/icons";
 
-export default function Home() {
-  const rows: IndexRow[] = RATED.map((b) => ({
+export default async function Home() {
+  const brfs = await listBrfs();
+  const rows: IndexRow[] = brfs.map((b) => ({
     slug: b.slug,
     name: b.name,
     district: b.district,
@@ -24,9 +26,9 @@ export default function Home() {
     feePerSqm: b.inputs.feePerSqm,
   }));
 
-  const strongest = RATED[0];
-  const trap = RATED.find((b) => b.newBuild) ?? RATED[RATED.length - 1];
-  const exposed = RATED.filter((b) => b !== trap).reduce((m, b) =>
+  const strongest = brfs[0];
+  const trap = brfs.find((b) => b.newBuild) ?? brfs[brfs.length - 1];
+  const exposed = brfs.filter((b) => b !== trap).reduce((m, b) =>
     b.inputs.rateSensitivity > m.inputs.rateSensitivity ? b : m,
   );
 
@@ -45,7 +47,7 @@ export default function Home() {
             </p>
           </>
         }
-        aside={<Snapshot />}
+        aside={<Snapshot brfs={brfs} />}
       />
 
       <section className="mx-auto max-w-[1200px] px-4 pt-10 sm:px-6">
@@ -91,8 +93,8 @@ export default function Home() {
   );
 }
 
-function Snapshot() {
-  const counts = GRADES.map((g) => ({ g, n: RATED.filter((b) => b.assessment.grade === g).length }));
+function Snapshot({ brfs }: { brfs: RatedBrf[] }) {
+  const counts = GRADES.map((g) => ({ g, n: brfs.filter((b) => b.assessment.grade === g).length }));
   const rows: [string, string][] = [
     ["Median debt", perSqm(MEDIANS.debtPerSqm)],
     ["Median savings", perSqm(MEDIANS.savingsPerSqm)],
@@ -103,7 +105,7 @@ function Snapshot() {
     <div className="card p-5">
       <div className="flex items-baseline justify-between">
         <h2 className="font-semibold">Index snapshot</h2>
-        <span className="text-xs text-ink-3">FY2024 · {RATED.length} associations</span>
+        <span className="text-xs text-ink-3">FY2024 · {brfs.length} associations</span>
       </div>
 
       <p className="label mt-5">Grade distribution</p>

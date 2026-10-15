@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MEDIANS, RATED, getBrf } from "@/lib/brfs";
+import { connection } from "next/server";
+import { MEDIANS } from "@/lib/brfs";
+import { getBrf, listBrfs } from "@/lib/data";
+import { dbConfigured, listWatched } from "@/lib/data/saved";
 import { mkr, num, num1, pct, perSqm } from "@/lib/format";
 import { GradeChip, GradeLadder, SignalPill } from "@/components/grade";
 import { FactorList, Flags } from "@/components/factors";
@@ -10,14 +13,15 @@ import { ReportsChart, type Series } from "@/components/reports-chart";
 import { SectionNav } from "@/components/section-nav";
 import { StressTest } from "@/components/stress-test";
 import { ChevronRight } from "@/components/icons";
+import { WatchButton } from "@/components/watch-button";
 
-export function generateStaticParams() {
-  return RATED.map((b) => ({ slug: b.slug }));
+export async function generateStaticParams() {
+  return (await listBrfs()).map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata(props: PageProps<"/brf/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
-  const b = getBrf(slug);
+  const b = await getBrf(slug);
   if (!b) return {};
   return {
     title: `${b.name}: grade ${b.assessment.grade}`,
@@ -30,6 +34,21 @@ export default function BrfPage(props: PageProps<"/brf/[slug]">) {
     <Suspense fallback={<DetailSkeleton />}>
       <BrfDetail params={props.params} />
     </Suspense>
+  );
+}
+
+// Whether this visitor's shared list includes the association. Read on every
+// request (connection() keeps it out of the pre-built page), so the rest of the
+// page stays static and only this small hole is dynamic. Renders nothing where
+// no database is connected.
+async function WatchState({ slug }: { slug: string }) {
+  await connection();
+  if (!dbConfigured()) return null;
+  const watching = (await listWatched()).includes(slug);
+  return (
+    <div className="md:ml-auto">
+      <WatchButton slug={slug} watching={watching} />
+    </div>
   );
 }
 
@@ -60,7 +79,7 @@ const SECTIONS = [
 
 async function BrfDetail({ params }: { params: PageProps<"/brf/[slug]">["params"] }) {
   const { slug } = await params;
-  const b = getBrf(slug);
+  const b = await getBrf(slug);
   if (!b) notFound();
 
   const a = b.assessment;
@@ -109,12 +128,15 @@ async function BrfDetail({ params }: { params: PageProps<"/brf/[slug]">["params"
           </nav>
 
           <div className="mt-5 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-3">
+            <div className="min-w-0 md:flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight tracking-[-0.02em]">{b.name}</h1>
                 <span className="rounded bg-warn-tint px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-warn">
                   Demo data
                 </span>
+                <Suspense fallback={null}>
+                  <WatchState slug={b.slug} />
+                </Suspense>
               </div>
               <p className="mt-1 text-sm text-ink-2">
                 {b.district} · built {b.built} · {b.apartments} flats · {num(total)} m²

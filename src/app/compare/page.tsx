@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Fragment, Suspense } from "react";
-import { RATED } from "@/lib/brfs";
+import { listBrfs } from "@/lib/data";
+import { dbConfigured, listComparisons } from "@/lib/data/saved";
 import { pickPair } from "@/lib/compare";
 import { compareRows } from "@/lib/compare-rows";
 import { GradeChip } from "@/components/grade";
 import { ComparePicker } from "@/components/compare-picker";
+import { SaveComparison } from "@/components/save-comparison";
 
 export const metadata: Metadata = {
   title: "Compare associations",
@@ -50,8 +52,9 @@ const joinWords = (items: string[]) =>
 // Only this part waits for the request, because only it reads the query string.
 async function Comparison({ searchParams }: { searchParams: PageProps<"/compare">["searchParams"] }) {
   const query = await searchParams;
-  const { a, b, notices } = pickPair(first(query.a), first(query.b), RATED);
-  const options = RATED.map((x) => ({ slug: x.slug, name: x.name, grade: x.assessment.grade }));
+  const brfs = await listBrfs();
+  const { a, b, notices } = pickPair(first(query.a), first(query.b), brfs);
+  const options = brfs.map((x) => ({ slug: x.slug, name: x.name, grade: x.assessment.grade }));
 
   const compared = a && b ? compareRows(a, b) : null;
   let detail = "";
@@ -65,6 +68,20 @@ async function Comparison({ searchParams }: { searchParams: PageProps<"/compare"
         verdict.aWins > verdict.bWins ? [a, b, "a", "b"] as const : [b, a, "b", "a"] as const;
       detail = `${leader.name} is ahead on ${wonBy(lead)}.`;
       if (wonBy(trail)) detail += ` ${trailer.name} is ahead on ${wonBy(trail)}.`;
+    }
+  }
+
+  // Whether to offer "Save this comparison", and whether this pair is already
+  // saved. Awaiting searchParams above already makes this request-time, so the
+  // environment and the database are read per request, never at build time.
+  // null means no button (no database, or it could not be read).
+  let isSaved: boolean | null = null;
+  if (a && b && dbConfigured()) {
+    try {
+      const [lo, hi] = a.slug <= b.slug ? [a.slug, b.slug] : [b.slug, a.slug];
+      isSaved = (await listComparisons()).some((c) => c.a === lo && c.b === hi);
+    } catch {
+      isSaved = null;
     }
   }
 
@@ -82,9 +99,12 @@ async function Comparison({ searchParams }: { searchParams: PageProps<"/compare"
 
       {a && b && compared ? (
         <>
-          <div className="card px-4 py-3">
-            <p className="font-semibold">{compared.verdict.text}</p>
-            {detail && <p className="mt-1 text-sm text-ink-2">{detail}</p>}
+          <div className="card flex flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3">
+            <div className="min-w-0">
+              <p className="font-semibold">{compared.verdict.text}</p>
+              {detail && <p className="mt-1 text-sm text-ink-2">{detail}</p>}
+            </div>
+            {isSaved !== null && <SaveComparison key={`${a.slug}:${b.slug}`} a={a.slug} b={b.slug} saved={isSaved} />}
           </div>
 
           <div className="card">

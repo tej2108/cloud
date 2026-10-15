@@ -27,9 +27,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
           <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-4 px-4 sm:gap-8 sm:px-6">
-            <Link href="/" className="flex shrink-0 items-center gap-2.5">
+            <Link href="/" aria-label="Trapphus home" className="flex shrink-0 items-center gap-2.5">
               <Logo />
-              <span className="text-lg font-bold tracking-tight">Trapphus</span>
+              <span className="hidden text-lg font-bold tracking-tight min-[480px]:inline">Trapphus</span>
             </Link>
             <nav className="no-scrollbar flex h-full gap-3 overflow-x-auto sm:gap-6">
               <Suspense fallback={<SiteNavFallback />}>
