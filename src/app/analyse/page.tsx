@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { RATED } from "@/lib/brfs";
 import { Analyser } from "@/components/analyser";
+import { AnalyseTarget } from "@/components/analyse-target";
 
 export const metadata: Metadata = {
   title: "Analyse an annual report",
@@ -9,18 +11,24 @@ export const metadata: Metadata = {
 
 export default function AnalysePage() {
   return (
-    <div className="pt-12">
-      <header className="max-w-3xl pb-10">
-        <p className="eyebrow reveal">Any förening · any årsredovisning</p>
-        <h1 className="reveal mt-3 font-display text-[clamp(2.6rem,6vw,4.6rem)] leading-[0.95]" style={{ ["--i" as string]: 1 }}>
-          Got the annual report? <span className="italic text-ochre">Grade it.</span>
-        </h1>
-        <p className="reveal mt-5 text-lg text-ink-2" style={{ ["--i" as string]: 2 }}>
-          The estate agent gives you the latest årsredovisning, or you can order it from Bolagsverket. Copy eight
-          numbers from it and the grade updates as you type. Nothing leaves your browser.
-        </p>
+    <>
+      <header className="border-b border-line bg-surface">
+        <div className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6">
+          <h1 className="max-w-2xl text-[clamp(1.75rem,4vw,2.5rem)] font-bold leading-tight tracking-[-0.02em]">
+            Grade any annual report
+          </h1>
+          <p className="mt-3 max-w-2xl text-ink-2">
+            Drop in the association&apos;s årsredovisning and the key ratios fill in by themselves, or type them in by
+            hand. The PDF is read in your browser and never uploaded.
+          </p>
+          <Suspense fallback={null}>
+            <AnalyseTarget />
+          </Suspense>
+        </div>
       </header>
-      <Analyser presets={RATED.map((b) => ({ name: b.name, inputs: b.inputs }))} />
-    </div>
+      <div className="mx-auto max-w-[1200px] px-4 pt-6 sm:px-6">
+        <Analyser presets={RATED.map((b) => ({ name: b.name, inputs: b.inputs }))} />
+      </div>
+    </>
   );
 }

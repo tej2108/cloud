@@ -21,53 +21,54 @@ export function StressTest({
   const { increasePct, newMonthlyFee } = stressFee({ monthlyFee: monthly, rateSensitivity, ratePp: pp });
   const debtShare = debtPerSqm * size;
   const truePrice = price + debtShare;
+  const riseTone = increasePct > 15 ? "text-down" : increasePct > 7 ? "text-warn" : "text-ink";
 
   return (
-    <div className="grid gap-8 border border-ink p-5 sm:p-8 md:grid-cols-[1fr_1.2fr]">
-      <div className="space-y-7">
-        <Slider label="Your flat" value={`${size} m²`} min={20} max={160} step={1} v={size} set={setSize} />
-        <Slider
-          label="If interest rates rise by"
-          value={`+${num1(pp)} pp`}
-          min={0}
-          max={4}
-          step={0.25}
-          v={pp}
-          set={setPp}
-        />
+    <div className="grid gap-8 md:grid-cols-2">
+      <div className="space-y-6">
+        <Slider label="Flat size" value={`${size} m²`} min={20} max={160} step={1} v={size} set={setSize} />
+        <Slider label="Interest rates rise by" value={`+${num1(pp)} pp`} min={0} max={4} step={0.25} v={pp} set={setPp} />
         <label className="block">
-          <span className="eyebrow">Asking price (kr)</span>
-          <input
-            inputMode="numeric"
-            value={num(price)}
-            onChange={(e) => {
-              const n = Number(e.target.value.replace(/\D/g, ""));
-              if (Number.isFinite(n)) setPrice(n);
-            }}
-            className="mt-1 w-full border-b border-ink bg-transparent py-1 font-mono text-lg tabular outline-none focus:border-ochre"
-          />
+          <span className="text-sm font-medium">Asking price</span>
+          <div className="mt-1.5 flex items-center rounded-lg border border-line-2 bg-surface focus-within:border-brand focus-within:ring-2 focus-within:ring-brand-tint">
+            <input
+              inputMode="numeric"
+              value={num(price)}
+              onChange={(e) => {
+                const n = Number(e.target.value.replace(/\D/g, ""));
+                if (Number.isFinite(n)) setPrice(n);
+              }}
+              className="h-11 w-full bg-transparent px-3 text-base tabular outline-none"
+            />
+            <span className="pr-3 text-sm text-ink-3">kr</span>
+          </div>
         </label>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-6 gap-y-6">
-        <Out label="Monthly fee today" value={`${num(monthly)} kr`} />
-        <Out
-          label={`After +${num1(pp)} pp`}
-          value={`${num(newMonthlyFee)} kr`}
-          sub={pp > 0 ? `+${num1(increasePct)} % · +${num(newMonthlyFee - monthly)} kr/mo` : "no change"}
-          tone={increasePct > 15 ? "bad" : increasePct > 7 ? "warn" : undefined}
-        />
-        <Out
-          label="Your share of association debt"
-          value={`${num(debtShare)} kr`}
-          sub="approx., by floor area"
-          tone={debtPerSqm > 15000 ? "bad" : undefined}
-        />
-        <Out
-          label="True price (price + debt share)"
-          value={`${num(truePrice)} kr`}
-          sub={`${num(truePrice / size)} kr/m²`}
-        />
+      <div className="rounded-lg bg-surface-2 p-5">
+        <dl className="space-y-3 text-sm">
+          <Row label="Monthly fee today" value={`${num(monthly)} kr`} />
+          <Row
+            label={`Monthly fee after +${num1(pp)} pp`}
+            value={`${num(newMonthlyFee)} kr`}
+            sub={pp > 0 ? `+${num(newMonthlyFee - monthly)} kr/mo (+${num1(increasePct)} %)` : "no change"}
+            className={riseTone}
+          />
+          <Row
+            label="Your share of association debt"
+            value={`${num(debtShare)} kr`}
+            sub="approx., by floor area"
+            className={debtPerSqm > 15000 ? "text-down" : ""}
+          />
+          <Row label="Asking price" value={`${num(price)} kr`} />
+        </dl>
+        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-line-2 pt-4">
+          <div>
+            <p className="text-sm font-semibold">True price</p>
+            <p className="text-xs text-ink-3">price + debt share · {num(truePrice / size)} kr/m²</p>
+          </div>
+          <p className="whitespace-nowrap text-2xl font-bold tracking-tight tabular">{num(truePrice)} kr</p>
+        </div>
       </div>
     </div>
   );
@@ -82,11 +83,12 @@ function Slider(props: {
   v: number;
   set: (n: number) => void;
 }) {
+  const fill = ((props.v - props.min) / (props.max - props.min)) * 100;
   return (
     <label className="block">
       <div className="flex items-baseline justify-between">
-        <span className="eyebrow">{props.label}</span>
-        <span className="font-display text-2xl tabular">{props.value}</span>
+        <span className="text-sm font-medium">{props.label}</span>
+        <span className="text-base font-semibold tabular">{props.value}</span>
       </div>
       <input
         type="range"
@@ -96,18 +98,20 @@ function Slider(props: {
         value={props.v}
         onChange={(e) => props.set(Number(e.target.value))}
         className="mt-3 w-full"
+        style={{ ["--fill" as string]: `${fill}%` }}
       />
     </label>
   );
 }
 
-function Out({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "warn" | "bad" }) {
-  const color = tone === "bad" ? "text-falu" : tone === "warn" ? "text-ochre" : "";
+function Row({ label, value, sub, className = "" }: { label: string; value: string; sub?: string; className?: string }) {
   return (
-    <div className="border-t border-line pt-2">
-      <div className="text-xs text-ink-3">{label}</div>
-      <div className={`font-display text-[clamp(1.5rem,3.2vw,2.2rem)] leading-tight tabular ${color}`}>{value}</div>
-      {sub && <div className="font-mono text-[11px] text-ink-3">{sub}</div>}
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="text-ink-2">
+        {label}
+        {sub && <span className="block text-xs text-ink-3">{sub}</span>}
+      </dt>
+      <dd className={`font-semibold tabular ${className}`}>{value}</dd>
     </div>
   );
 }
