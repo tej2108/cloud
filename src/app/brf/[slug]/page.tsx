@@ -44,7 +44,12 @@ export default function BrfPage(props: PageProps<"/brf/[slug]">) {
 async function WatchState({ slug }: { slug: string }) {
   await connection();
   if (!dbConfigured()) return null;
-  const watching = (await listWatched()).includes(slug);
+  let watching: boolean;
+  try {
+    watching = (await listWatched()).includes(slug);
+  } catch {
+    return null; // the report still shows; only the button is left out
+  }
   return (
     <div className="md:ml-auto">
       <WatchButton slug={slug} watching={watching} />

@@ -2,7 +2,8 @@
 
 // Server Actions for the watchlist and saved comparisons. They take the
 // (previous state, form data) shape so the UI can use useActionState and a
-// plain <form action>, which also works without JavaScript.
+// plain <form action>. (The pages stream their content in with JavaScript, so
+// in practice the buttons need JavaScript too.)
 //
 // The browser is not trusted: every input is checked here, before anything is
 // written. Next.js itself only accepts action calls as POST from the same

@@ -5,8 +5,8 @@ import { useActionState } from "react";
 import { saveComparison } from "@/app/actions";
 
 /**
- * "Save this comparison" on the compare page. A plain form, so it also works
- * without JavaScript. `saved` comes from the server and is the truth after any
+ * "Save this comparison" on the compare page. A plain form. `saved` comes from
+ * the server and is the truth after any
  * refresh; the action's own answer covers the moment right after pressing.
  */
 export function SaveComparison({ a, b, saved }: { a: string; b: string; saved: boolean }) {

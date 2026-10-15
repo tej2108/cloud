@@ -20,7 +20,13 @@ export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
 
 /** True when there is somewhere to save to. Check this before calling ready(). */
 export function dbConfigured(): boolean {
-  return Boolean(process.env.DATABASE_URL) || process.env.USE_LOCAL_DB === "1";
+  return Boolean(process.env.DATABASE_URL) || localDbAllowed();
+}
+
+// The local database writes to disk, which does not persist on Vercel (VERCEL is
+// set there), so the switch is ignored on that host instead of quietly losing data.
+function localDbAllowed(): boolean {
+  return process.env.USE_LOCAL_DB === "1" && !process.env.VERCEL;
 }
 
 // Cached on globalThis so Next.js dev reloads reuse one client instead of
@@ -31,7 +37,11 @@ const cache: Cache = (g.__trapphusDb ??= {});
 
 /** Creates the client the first time it is asked for, then reuses it. */
 export function getDb(): Promise<Db> {
-  return (cache.client ??= connect());
+  // A failed connection is not remembered, so the next request tries again.
+  return (cache.client ??= connect().catch((err) => {
+    cache.client = undefined;
+    throw err;
+  }));
 }
 
 async function connect(): Promise<Db> {
@@ -42,7 +52,7 @@ async function connect(): Promise<Db> {
     const { drizzle } = await import("drizzle-orm/neon-http");
     return drizzle({ client: neon(url), schema });
   }
-  if (process.env.USE_LOCAL_DB === "1") {
+  if (localDbAllowed()) {
     const { PGlite } = await import("@electric-sql/pglite");
     const { drizzle } = await import("drizzle-orm/pglite");
     const { mkdir } = await import("node:fs/promises");
@@ -69,9 +79,9 @@ async function bootstrap(): Promise<Db> {
     }
     return db;
   } catch (err) {
-    // Do not remember a failure, so the next request can try again.
+    // Do not remember a failed bootstrap, so the next request can try again. The
+    // client itself stays: a second PGlite client cannot share the same folder.
     cache.ready = undefined;
-    cache.client = undefined;
     throw err;
   }
 }

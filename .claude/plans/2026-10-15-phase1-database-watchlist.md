@@ -1,5 +1,5 @@
 # Plan: Phase 1 of the full-stack Trapphus — database, watchlist, saved comparisons
-Status: approved
+Status: shipped
 Date: 2026-10-15
 Preview: https://claude.ai/artifact/Pjs6gkX5g4VGG32BbKmTMh
 
@@ -51,7 +51,7 @@ Order: A1 and A2 together, then B, then C and D together, then the verifier.
 
 ### Slice C: report pages and home
 - Files: `src/app/page.tsx`, `src/app/brf/[slug]/page.tsx`, `src/components/watch-button.tsx` (new)
-- Do: use `listBrfs`/`getBrf` from the data layer (`generateStaticParams` too). On the report page add a small server component inside `<Suspense>` that reads `listWatched` (and `dbConfigured`) and renders `WatchButton` (client, uses the action with `useActionState` or a form, works without JavaScript). Hidden entirely when not configured.
+- Do: use `listBrfs`/`getBrf` from the data layer (`generateStaticParams` too). On the report page add a small server component inside `<Suspense>` that reads `listWatched` (and `dbConfigured`) and renders `WatchButton` (client, uses the action with `useActionState` or a form, works as a plain form). Hidden entirely when not configured.
 - Done when: the page is still pre-built apart from the button's hole, and the button reflects the stored state after a reload.
 
 ### Slice D: compare, Saved page, nav
@@ -87,3 +87,14 @@ Per-person accounts, the search API route, ingest, real data providers, migratio
 - One shared list for everyone with the login (no accounts).
 - Add Saved to the nav; hide the "Trapphus" wordmark below 480px.
 - Approved as shown in the preview.
+
+## Outcome (2026-10-15)
+- Built by Sonnet builders A1, A2, B, then C and D in parallel. An independent Sonnet verifier ran the production build in a real browser against a local database and failed it on three points, all since fixed and re-checked:
+  1. Every `/compare` pair request logged a Next.js `Date.now()` error with the database on. Fix: `await connection()` before the database read (zero log errors across four loads afterwards).
+  2. Keyboard focus was lost after pressing Watch (the button disabled itself). Fix: `aria-disabled` instead of `disabled`; focus stays through two Enter presses.
+  3. The plan claimed the buttons work without JavaScript. They do not: the pages stream their content in with JavaScript (true before this change too). Claim removed from code comments.
+- Code review (medium, against main) found eight items. Fixed: database errors on the report page; the local database being honoured on Vercel (now ignored when `VERCEL` is set); the connection cache and bootstrap race; a keyed "is this pair saved" lookup with one pair-ordering helper.
+- Not changed, deliberately: no per-person ownership, rate limit or delete confirmation (follows decision 1, one shared list); no unsave button on the compare page (as approved).
+- Re-checked after the review fixes: local database flows, database unreachable (pages still render, buttons left out, no connection details in logs), `VERCEL=1` with `USE_LOCAL_DB=1` (saving switched off).
+- Verified on the local database only. The hosted Neon path is type-checked and reviewed by hand but has never run against a database. The `x-forwarded-host` header is trusted by Next.js for its same-host check; whether Vercel lets clients set it was not checked.
+- To switch saving on in production: create a hosted Postgres, set `DATABASE_URL` on the host, redeploy. Until then the site shows "Saving isn't switched on here yet."

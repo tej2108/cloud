@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Fragment, Suspense } from "react";
+import { connection } from "next/server";
 import { listBrfs } from "@/lib/data";
-import { dbConfigured, listComparisons } from "@/lib/data/saved";
+import { dbConfigured, isComparisonSaved } from "@/lib/data/saved";
 import { pickPair } from "@/lib/compare";
 import { compareRows } from "@/lib/compare-rows";
 import { GradeChip } from "@/components/grade";
@@ -76,10 +77,10 @@ async function Comparison({ searchParams }: { searchParams: PageProps<"/compare"
   // environment and the database are read per request, never at build time.
   // null means no button (no database, or it could not be read).
   let isSaved: boolean | null = null;
+  await connection();
   if (a && b && dbConfigured()) {
     try {
-      const [lo, hi] = a.slug <= b.slug ? [a.slug, b.slug] : [b.slug, a.slug];
-      isSaved = (await listComparisons()).some((c) => c.a === lo && c.b === hi);
+      isSaved = await isComparisonSaved(a.slug, b.slug);
     } catch {
       isSaved = null;
     }

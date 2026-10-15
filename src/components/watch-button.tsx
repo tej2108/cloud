@@ -5,7 +5,7 @@ import { toggleWatch } from "@/app/actions";
 
 type WatchResult = Awaited<ReturnType<typeof toggleWatch>>;
 
-// A plain <form action>, so it also works before (or without) JavaScript.
+// A plain <form action>. It is aria-disabled (not disabled) while the action runs, so keyboard focus stays on the button.
 // `watching` is the stored state and is the single source of truth: while the
 // action runs we show the opposite of it (what the click is asking for), and
 // the action's revalidatePath brings back a fresh `watching` in the same
@@ -21,9 +21,12 @@ export function WatchButton({ slug, watching }: { slug: string; watching: boolea
       <input type="hidden" name="watch" value={watching ? "0" : "1"} />
       <button
         type="submit"
-        disabled={pending}
+        aria-disabled={pending}
         aria-busy={pending}
-        className={`inline-flex h-10 items-center gap-1.5 rounded-lg border px-3.5 text-sm font-semibold transition-colors disabled:cursor-wait disabled:opacity-70 ${
+        onClick={(e) => {
+          if (pending) e.preventDefault();
+        }}
+        className={`inline-flex h-10 items-center gap-1.5 rounded-lg border px-3.5 text-sm font-semibold transition-colors aria-disabled:cursor-wait aria-disabled:opacity-70 ${
           shown ? "border-up bg-up-tint text-up" : "border-line-2 bg-surface text-ink hover:bg-surface-2"
         }`}
       >
