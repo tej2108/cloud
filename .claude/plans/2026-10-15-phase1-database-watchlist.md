@@ -1,5 +1,5 @@
 # Plan: Phase 1 of the full-stack Trapphus — database, watchlist, saved comparisons
-Status: draft
+Status: approved
 Date: 2026-10-15
 Preview: https://claude.ai/artifact/Pjs6gkX5g4VGG32BbKmTMh
 
@@ -82,3 +82,8 @@ Defaults I chose (say if you disagree): hide the buttons when no database is con
 
 ## Out of scope
 Per-person accounts, the search API route, ingest, real data providers, migration tooling, editing saved comparisons.
+
+## Owner's decisions (2026-10-15)
+- One shared list for everyone with the login (no accounts).
+- Add Saved to the nav; hide the "Trapphus" wordmark below 480px.
+- Approved as shown in the preview.
