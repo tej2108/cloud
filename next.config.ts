@@ -34,6 +34,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  // PGlite (the local embedded database) loads its own WebAssembly files from
+  // disk, which breaks if the bundler inlines it. Leave it as a plain import.
+  serverExternalPackages: ["@electric-sql/pglite"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
