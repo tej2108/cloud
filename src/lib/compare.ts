@@ -62,7 +62,7 @@ export function pickPair<T extends { slug: string; name: string }>(
   // Rule 2 with nothing gone wrong: explain the automatic choice.
   if (filled && !aMissing && !bMissing && !sameTwice) {
     const rank = filled.slug === ranked[0]?.slug ? "the strongest" : "the second strongest";
-    notices.push(`Compared with ${filled.name}, ${rank} association in the index. Pick another below.`);
+    notices.push(`Compared with ${filled.name}, ${rank} association in the index. Change either one with the menus above.`);
   }
 
   return { a, b, notices };

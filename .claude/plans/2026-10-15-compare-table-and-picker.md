@@ -1,5 +1,5 @@
 # Plan: Compare table, picker and nav link
-Status: draft
+Status: approved
 Date: 2026-10-15
 Preview: https://claude.ai/artifact/5tDzxJXhUvdRt59ih83QNf
 
@@ -34,7 +34,7 @@ Finish `/compare`: show two associations side by side with the better value mark
   export function compareRows(a: RatedBrf, b: RatedBrf): { rows: CompareRow[]; verdict: Verdict }
   ```
   (`RatedBrf` is a type-only import from `@/lib/brfs`.)
-- Rows, in order, with direction: `debt` lower is better; `savings` higher; `rate` lower; `energy` lower (these four are "counted" in the verdict); `fee` never marked, with a note; `built` marked by the higher `building` factor score from `assessment.factors`, not counted, with a note.
+- Rows, in order, with direction: `debt` lower is better; `savings` higher; `rate` lower; `energy` lower (these four are "counted" in the verdict); `fee` never marked, with a note; `building` marked by the higher `building` factor score from `assessment.factors`, not counted, with a note.
 - Compare the values as displayed (rounded as `src/lib/format.ts` shows them), so equal-looking values are a tie (`better: null`).
 - Display strings use `src/lib/format.ts`. The built row reads like "Built 1936 · stambyte 2009" or "Built 2019 · no stambyte yet".
 - Verdict text: more wins for one side gives "<name> is stronger on N of 4 ratios."; level gives "The two are level on the ratios that can be compared head to head."
@@ -83,3 +83,9 @@ Verdict counts only the four head-to-head ratios (debt, savings, rate, energy). 
 
 ## Out of scope
 - A "swap sides" button, more than two associations, saving comparisons, "Compare with…" links on report pages, anything with real data.
+
+## Owner's decisions (2026-10-15)
+- Fee row: show both values, no winner, with the note.
+- Building row: mark by the engine's building score.
+- Menus: change takes effect immediately, no button.
+- Approved as shown in the preview.
