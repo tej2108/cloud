@@ -115,7 +115,7 @@ async function Comparison({ searchParams }: { searchParams: PageProps<"/compare"
                     <tr className="border-t border-line">
                       <th scope="row" className="px-3 py-3 align-top font-medium sm:px-4">
                         <span className="break-words">{row.label}</span>
-                        <span className="block break-words text-xs font-normal text-ink-3">{row.sv}</span>
+                        <span className="hidden break-words text-xs font-normal text-ink-3 sm:block">{row.sv}</span>
                       </th>
                       {(["a", "b"] as const).map((side) => {
                         const better = row.better === side;

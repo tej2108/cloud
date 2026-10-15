@@ -1,5 +1,5 @@
 # Plan: Compare table, picker and nav link
-Status: approved
+Status: shipped
 Date: 2026-10-15
 Preview: https://claude.ai/artifact/5tDzxJXhUvdRt59ih83QNf
 
@@ -89,3 +89,10 @@ Verdict counts only the four head-to-head ratios (debt, savings, rate, energy). 
 - Building row: mark by the engine's building score.
 - Menus: change takes effect immediately, no button.
 - Approved as shown in the preview.
+
+## Outcome (2026-10-15)
+- Built by four Sonnet builders (slices A, B, D in parallel, then C). Verified by a separate Sonnet verifier in a real browser: all plan checks passed except the 400px nav fit.
+- Fix after verification: mobile header and nav gaps tightened in `src/app/layout.tsx` (not in the plan's file list; needed to match the preview), and the header badge moved from `md` to `lg` because it squeezed the nav between 768 and about 830px. Swedish sub-labels hidden on phones in the table (they broke mid-word; the preview showed units).
+- Verdict line detail text differs slightly from the preview wording ("X is ahead on …").
+- Open for the owner: below 390px (360 and 375 phones) the nav still scrolls sideways by 30 and 15px. Options: smaller nav text, hide the "Trapphus" wordmark below 400px, or accept the swipe.
+- Not covered: real touch devices and mobile Safari; the plain-Node tests for `compare-rows.ts` were run by the builder but are not committed (the repo has no test setup).

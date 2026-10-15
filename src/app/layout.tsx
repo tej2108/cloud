@@ -26,17 +26,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${plex.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
-          <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-5 px-4 sm:gap-8 sm:px-6">
+          <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-4 px-4 sm:gap-8 sm:px-6">
             <Link href="/" className="flex shrink-0 items-center gap-2.5">
               <Logo />
               <span className="text-lg font-bold tracking-tight">Trapphus</span>
             </Link>
-            <nav className="no-scrollbar flex h-full gap-4 overflow-x-auto sm:gap-6">
+            <nav className="no-scrollbar flex h-full gap-3 overflow-x-auto sm:gap-6">
               <Suspense fallback={<SiteNavFallback />}>
                 <SiteNav />
               </Suspense>
             </nav>
-            <span className="ml-auto hidden shrink-0 items-center gap-2 text-xs text-ink-3 md:flex">
+            <span className="ml-auto hidden shrink-0 items-center gap-2 text-xs text-ink-3 lg:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-up" />
               Stockholm · annual reports 2020–2024
             </span>
